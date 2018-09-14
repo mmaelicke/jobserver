@@ -1,7 +1,9 @@
 """
 RESTful endpoint for user management
 """
-from flask import request, url_for
+import json
+
+from flask import request, url_for, current_app
 from flask_restful import Resource
 from flask_mail import Message
 
@@ -97,8 +99,55 @@ class UserApi(Resource):
         return user.to_dict(stringify=True), 200
 
     @login_required
+    @user_route(roles=['admin'])
     def delete(self, user_id):
-        pass
+        """Delete the user
+
+        Delete the requested user. This action can only be performed by the
+        user of user_id himself or any user of role superuser and users of
+        decorated roles (usually 'admin').
+
+        The user information will be stored into the backup folder into the
+        json backup file specified in the application cofig
+
+        Parameters
+        ----------
+        user_id : str
+            id of the requested user
+
+        Returns
+        -------
+        response : JSON
+            acknowledgement message
+
+        """
+        # get the user
+        user = User.get(_id=user_id)
+
+        if user is None:
+            return {
+                'status': 404,
+                'message': 'User not found.'
+            }, 404
+
+        # get the user info
+        d = user.to_dict(stringify=True)
+
+        # delete
+        user.delete()
+
+        # store
+        with open(current_app.config.get('DELETED_USER_PATH'), 'w+') as backup:
+            data = json.load(backup)
+            data['users'].append(d)
+            backup.write(data)
+
+        # return
+        return {
+            'status': 200,
+            'acknowledged': True,
+            'message': 'User has been deleted.'
+        }, 200
 
 
 class UserRegistrationApi(Resource):
@@ -262,7 +311,6 @@ class UserActivationApi(Resource):
             'message': 'A new activation mail has been sent to: %s.' +
                        'Your user ID is: %s' % (user.email, str(user.id))
         }, 200
-
 
 
 auth_api.add_resource(UserApi, '/user/<string:user_id>', endpoint='user')
