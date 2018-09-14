@@ -64,7 +64,7 @@ setup(name='jobserver',
       cmdclass = {
           'develop': PostDevelopCommand,
           'install': PostInstallCommand
-      }
+      },
       include_package_data=True,
       zip_safe=False
 )
