@@ -1,0 +1,8 @@
+flask
+flask-restful
+flask-pymongo
+flask-mail
+pymongo
+dnspython
+pandas
+itsdangerous>=0.18

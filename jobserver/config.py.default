@@ -1,0 +1,40 @@
+import os
+
+APP_PATH = os.path.abspath(os.path.dirname(__file__))
+
+
+class Config:
+    ENV = 'development'
+    DEBUG = False
+    TESTING = False
+    SECRET_KEY = 'secret key'
+    MONGO_URI = "mongodb://localhost:27017/jobserver"
+    APP_PATH = APP_PATH
+    DATA_PATH = os.path.join(APP_PATH, 'data')
+    DELETED_USER_PATH = os.path.join(APP_PATH, 'backup/deleted_users.json')
+    ACCESS_TOKEN_LIFESPAN = 1200  # 20 minutes
+    API_V1_LOGIN = True
+    MAIL_SERVER = 'smtp.yourserver.com'
+    MAIL_PORT = 465
+    MAIL_USE_SSL = True
+    MAIL_USE_TLS = False
+    MAIL_USERNAME = 'username'
+    MAIL_PASSWORD = 'password'
+    MAIL_DEFAULT_SENDER = 'registration@yourserver.com'
+
+
+class DevelopmentConfig(Config):
+    DEBUG = True
+    TESTING = True
+    ACCESS_TOKEN_LIFESPAN = 86400 * 1  # 1 day
+
+
+class ProductionConfig(Config):
+    ENV = 'production'
+
+
+config = {
+    'default': DevelopmentConfig,
+    'local-dev': DevelopmentConfig,
+    'production': ProductionConfig
+}

@@ -1,0 +1,1 @@
+from .script import load_script_func

@@ -102,3 +102,8 @@ venv.bak/
 
 # mypy
 .mypy_cache/
+
+# project settings
+.idea
+config.py
+deleted_users.json
