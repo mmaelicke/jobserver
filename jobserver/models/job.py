@@ -1,19 +1,31 @@
-"""
-Main Job model class. This class handles CRUD operations on the MongoDB
-instance to manage the Jobs.
+"""Job model class.
+
+General
+-------
+This class handles CRUD operations on the MongoDB instance to manage the Jobs.
 
 A Job is a descriptive model of a user starting a script, monitoring the
 execution and viewing the results.
+
+Examples
+--------
+Build a new Job, containing information about the Process to be executed.
+
+>>> job = Job(scipt_name='summary')
+>>> job.create()
+
 """
 from threading import Thread
 from datetime import datetime as dt
+
+from flask import g
 
 from jobserver.models.mongo import MongoModel
 from jobserver.models.process import Process
 from jobserver.models.data_file import DataFile
 from jobserver.models.data import BaseDataModel
-from jobserver.app import scripts
 from jobserver.util import load_script_func
+from jobserver.errors import JobExecutionRestrictedError
 
 
 class Job(MongoModel):
@@ -36,38 +48,113 @@ class Job(MongoModel):
         super(Job, self).update(data=data)
 
     def start(self):
-        # This is heavy development
-#        summary = getattr(scripts, 'summary')
+        """Execute Job
+
+        Starts the execution of this Job instance. The job will check any
+        defined restrictions on job execution by checking the flask.g object
+        for a user holding empty quota information. No user, a user without
+        quota, a superuser or admin are assumed to be unrestricted.
+
+        The data and process are loaded from the configured 'data' and
+        'script' information. The Job execution itself is called in a new
+        Thread that runs the Process.run method. After starting the thread,
+        meta data about the data object and the Process class are stored into
+        the Job instance and are persisted into the database.
+
+        Returns
+        -------
+        void
+
+        """
+        # check, if the job execution is restricted
+        self.check_restrictions()
 
         # load data
         data = self.load_input_data()
 
         # load the process
-        proc = self.load_process(data=data)
-#        # set empty args
-#        args = []
+        process = self.load_process(data=data)
 
-#        proc = Process(summary, data.read(), args, kwargs=dict(), job=self)
-        # if no exceptions occured, start the Thread
-        Thread(target=proc.run).start()
+        # start the Process in a new Thread
+        # TODO: here, I could use joblib memcache
+        Thread(target=process.run).start()
 
-#        # DEV
-#        # after process started, save the settings
-#        self.scipt_name = 'timeseries'
-#        self.process_name = 'summary'
-#        self.process_args = args
-        # As the Thread started, save the data and process object
+        # store data information
         self.data = data.to_dict()
 
         # Process object
-        proc_dict = self.script
-        if proc_dict is None:
-            proc_dict = {}
-        proc_dict.update(proc.to_dict())
-        self.script = proc_dict
+        process_dict = self.script
+        if process_dict is None:
+            process_dict = {}
+        process_dict.update(process.to_dict())
+        self.script = process_dict
 
         # save everything
         self.save()
+
+    def check_restrictions(self):
+        """Check Job availability
+
+        In the standard configuration a job can only be executed if the user
+        is a superuser or admin or if the user has a attribute 'job_quota' > 1,
+        which will be decreased. If the passed user is None, API login is
+        assumed to be turned off and the job execution is unlimited
+
+        Parameters
+        ----------
+        user : User
+            The user requesting to start the job.
+
+        Returns
+        -------
+        None
+
+        Raises
+        ------
+        error : JobExecutionRestrictedError
+            In case the Job execution is restricted, this error will be raised.
+
+        """
+        # get the user
+        user = getattr(g, 'user', None)
+        # if no user is given, Job execution is not restricted
+        if user is None:
+            return None
+
+        # superusers and admins are not restricted
+        if user.role in ['superuser', 'admin']:
+            return None
+
+        # check if quota is deactivated for this user:
+        if user.job_quota is None:
+            return None
+
+        # check if user has quota
+        if user.job_quota is not None and user.job_quota >= 1:
+            user.job_quota -= 1
+            user.save()
+            return None
+        else:
+            raise JobExecutionRestrictedError('No Job execution time left.')
+
+    def on_error(self):
+        """Error handler
+
+        This error handler is used to handle the active user on job errors.
+        As default behaviour any user with a configured quota will get an
+        increase of 1 unit on his quota as the job errored.
+
+        Returns
+        -------
+        None
+
+        """
+        # get user
+        user = getattr(g, 'user', None)
+
+        if user is not None and user.job_quota is not None:
+            user.job_quota += 1
+            user.save()
 
     def load_input_data(self):
         """Check input data and load model

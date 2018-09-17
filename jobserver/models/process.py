@@ -27,7 +27,15 @@ class Process:
         print('Process started')
 
         # run
-        output = self.f(self.data, *self.args, **self.kwargs)
+        try:
+            output = self.f(self.data, *self.args, **self.kwargs)
+        except Exception as e:
+            print('Process errored')
+            self.job.error = True
+            self.job.message = str(e)
+            self.job.save()
+            self.job.on_error(user=self.job.user)
+            return None
 
         if isinstance(output, pd.DataFrame):
             output = output.to_dict()
@@ -39,6 +47,7 @@ class Process:
         self.job.result = output
         self.job.save()
         print('Process finished')
+        return None
 
     def to_dict(self):
         return {
