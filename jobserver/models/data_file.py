@@ -75,6 +75,21 @@ class DataFile(BaseDataModel):
         -------
 
         """
+        return self.path
+
+    def read_data(self):
+        """Data reader
+
+        This method returns the actual data described by this instance. An
+        inherinting class can overwrite this method in order to use other
+        functions than pandas.read_csv to read from the given path
+
+        Returns
+        -------
+        data : pandas.DataFrame
+            Returns the data as a pandas.DataFrame.
+
+        """
         return pd.read_csv(self.path)
 
     def name(self):
@@ -101,3 +116,28 @@ class DataFile(BaseDataModel):
             'name': self.name(),
             'size': self.size()
         }
+
+
+class DataFileAsObject(DataFile):
+    """
+    The DataFileAsObject is identical to DataFile but overwrites the default
+    DataFile.read function in order to return the content of
+    DataFile.read_data over DataFile.get_path.
+
+    Therefore, this class will return the content of the csv file instead of
+    the path to the file. This class can easily be implemented to the
+    jobserver in case the functions in the script module need
+    pandas.DataFrames passed instead of the file path.
+
+    """
+    def read(self):
+        """Read
+
+        Read the data contained in the csv file.
+
+        Returns
+        -------
+        pandas.DataFrame
+
+        """
+        return self.read_data()

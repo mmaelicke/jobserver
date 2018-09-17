@@ -258,10 +258,6 @@ class Job(MongoModel):
 
                 # load the function
                 func = load_script_func('scripts', self.script['name'])
-#                    self.script.get('module', 'scripts'),
-#                    'scripts',
-#                    self.script['name']
-#                )
 
             elif self.script.get('type', 'function') == 'file':
                 raise NotImplementedError(
@@ -277,8 +273,8 @@ class Job(MongoModel):
 
             # return the Process instance
             return ProcessClass(
-                f=func,
-                data=data.read(),
+                func,
+                data.read(),
                 args=self.script.get('args', []),
                 kwargs=self.script.get('kwargs', {}),
                 job=self
