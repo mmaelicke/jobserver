@@ -1,7 +1,7 @@
 import base64
 from functools import wraps, partial
 
-from flask import jsonify, request, g
+from flask import jsonify, request, g, current_app
 
 from jobserver.models.user import User
 

@@ -1,3 +1,5 @@
+import os
+
 from flask import Flask
 from flask_mail import Mail
 
@@ -28,6 +30,9 @@ def create_app(config_name='default'):
 
     from jobserver.auth import auth_blueprint
     app.register_blueprint(auth_blueprint)
+
+    from jobserver.main import main_blueprint
+    app.register_blueprint(main_blueprint)
 
     # as a last step, call the scripts on_init function
     scripts.on_init(app)
