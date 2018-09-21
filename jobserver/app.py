@@ -9,7 +9,6 @@ from jobserver.config import config
 from jobserver.models.mongo import mongo
 
 mail = Mail()
-cors = CORS()
 
 APP_PATH = os.path.abspath(os.path.dirname(__file__))
 
@@ -26,9 +25,6 @@ def create_app(config_name='default'):
     # initialize Mail client
     mail.init_app(app)
 
-    # initialize Cross Origin headers for full application
-    cors.init_app(app)
-
     # add Blueprints
     from jobserver.api import api_v1_blueprint
     app.register_blueprint(api_v1_blueprint)
@@ -41,6 +37,18 @@ def create_app(config_name='default'):
 
     # as a last step, call the scripts on_init function
     scripts.on_init(app)
+
+    # set CORS
+    @app.after_request
+    def after_request(response):
+        response.headers["Access-Control-Allow-Origin"] = "*"
+        response.headers["Access-Control-Allow-Methods"] = "GET, PUT, POST, " \
+                                                           "DELETE, OPTIONS"
+        response.headers["Access-Control-Allow-Credentials"] = "true"
+        response.headers["Access-Control-Allow-Headers"] = "origin, x-requested-with, content-type, accept"
+
+        return response
+
 
     return app
 
