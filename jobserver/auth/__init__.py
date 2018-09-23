@@ -1,4 +1,4 @@
-from flask import Blueprint, g
+from flask import Blueprint, g, request
 from flask_restful import Api
 
 from jobserver.auth.authorization import load_user_from_header_authorization,\
@@ -16,6 +16,10 @@ def check_login_state():
     The Auth route does not require a login for all endpoints. The
     authorization status is set for each route individually
     """
+    # check if it is a OPTIONS request
+    if request.method.lower() == 'options':
+        return None
+
     # get the user state
     response, status = load_user_from_header_authorization()
 

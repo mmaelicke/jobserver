@@ -1,8 +1,7 @@
 import os
 
-from flask import Flask
+from flask import Flask, request
 from flask_mail import Mail
-from flask_cors import CORS
 
 from jobserver import scripts
 from jobserver.config import config
@@ -41,14 +40,29 @@ def create_app(config_name='default'):
     # set CORS
     @app.after_request
     def after_request(response):
-        response.headers["Access-Control-Allow-Origin"] = "*"
+        # this can be handled better
+        request_origin = request.headers.get('origin')
+        origins = [
+            "http://localhost:4200",
+            "http://localhost, ",
+            "http://localhost:5000"
+            ]
+        if request_origin is None:
+            origin = origins[0]
+
+        elif request_origin in origins or '*' in origins:
+            origin = request_origin
+        allowed = "origin, x-requested-with, content-type, accept, " \
+                  "authorization"
+
+        # set the HEADERS
+        response.headers["Access-Control-Allow-Origin"] = origin
         response.headers["Access-Control-Allow-Methods"] = "GET, PUT, POST, " \
                                                            "DELETE, OPTIONS"
         response.headers["Access-Control-Allow-Credentials"] = "true"
-        response.headers["Access-Control-Allow-Headers"] = "origin, x-requested-with, content-type, accept"
+        response.headers["Access-Control-Allow-Headers"] = allowed
 
         return response
-
 
     return app
 

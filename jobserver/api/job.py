@@ -91,8 +91,10 @@ class JobApi(Resource):
 
         """
         if Job.id_exists(job_id):
-            return {'status': 409,
-                    'message': 'A job of id %s already exists' % job_id}
+            return {
+                'status': 409,
+                'message': 'A job of id %s already exists' % job_id
+            }, 409
 
         data = request.get_json()
         if data is None:
@@ -103,9 +105,9 @@ class JobApi(Resource):
             job = Job(_id=job_id, **data)
             job.create()
         except InvalidId as e:
-            return {'status': 505, 'message': str(e)}
+            return {'status': 505, 'message': str(e)}, 505
         except Exception as e:
-            return {'status': 500, 'message': str(e)}
+            return {'status': 500, 'message': str(e)}, 500
 
         # return
         return job.to_dict(stringify=True), 201
@@ -123,7 +125,10 @@ class JobApi(Resource):
                     'acknowledged': True,
                     'message': 'Job of ID %s deleted.' % job_id}, 200
         else:
-            return {'status': 500, 'message': 'Something went horribly wrong.'}
+            return {
+                'status': 500,
+                'message': 'Something went horribly wrong.'
+            }, 500
 
 
 class JobsApi(Resource):
@@ -133,7 +138,7 @@ class JobsApi(Resource):
         return {
             'found': len(jobs),
             'jobs': [job.to_dict(stringify=True) for job in jobs]
-        }
+        }, 200
 
     def delete(self):
         success, total = Job.delete_all()
@@ -185,7 +190,10 @@ def run_job(job_id):
     job = Job.get(job_id)
 
     if job is None:
-        return jsonify({'status': 404, 'message': 'No Job of id %s' % job_id})
+        return jsonify({
+            'status': 404,
+            'message': 'No Job of id %s' % job_id
+        }), 404
 
     # start the job
     if job.started is None:
@@ -199,5 +207,7 @@ def run_job(job_id):
 
     # job was already started
     else:
-        return jsonify({'status': 409,
-                        'message': 'The job %s was already started' % job_id})
+        return jsonify({
+            'status': 409,
+            'message': 'The job %s was already started' % job_id
+        }), 409

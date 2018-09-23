@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify, current_app, g
+from flask import Blueprint, jsonify, current_app, g, request
 from flask_restful import Api
 
 from jobserver.auth.authorization import load_user_from_header_authorization
@@ -23,6 +23,10 @@ def check_login_state():
     -------
 
     """
+    # check if it is a OPTIONS request
+    if request.method.lower() == 'options':
+        return None
+
     # check if the login status shall be tested
     if not current_app.config.get('API_V1_LOGIN'):
         return None
