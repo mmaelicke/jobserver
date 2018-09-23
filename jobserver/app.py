@@ -52,13 +52,15 @@ def create_app(config_name='default'):
 
         elif request_origin in origins or '*' in origins:
             origin = request_origin
+        else:
+            origin = '*'
         allowed = "origin, x-requested-with, content-type, accept, " \
                   "authorization"
+        methods = "GET, PUT, POST, DELETE, OPTIONS"
 
         # set the HEADERS
         response.headers["Access-Control-Allow-Origin"] = origin
-        response.headers["Access-Control-Allow-Methods"] = "GET, PUT, POST, " \
-                                                           "DELETE, OPTIONS"
+        response.headers["Access-Control-Allow-Methods"] = methods
         response.headers["Access-Control-Allow-Credentials"] = "true"
         response.headers["Access-Control-Allow-Headers"] = allowed
 
