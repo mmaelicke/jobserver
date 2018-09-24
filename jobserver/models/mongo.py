@@ -94,7 +94,7 @@ class MongoModel(object):
             return True
 
     @classmethod
-    def get(cls, _id):
+    def get(cls, _id, filter={}):
         if cls.collection is None:
             raise ValueError('No collection set on child class')
 
@@ -104,19 +104,22 @@ class MongoModel(object):
             except InvalidId:
                 return None
 
-        res = cls.mongo.db[cls.collection].find_one({'_id': _id})
+        # update filter
+        filter.update({'_id': _id})
+
+        res = cls.mongo.db[cls.collection].find_one(filter)
         if res is None:
             return None
 
         return cls(**res)
 
     @classmethod
-    def get_all(cls):
+    def get_all(cls, filter={}):
         if cls.collection is None:
             raise ValueError('No collection set on child class')
 
         # load all docs in this collection
-        all_docs = cls.mongo.db[cls.collection].find()
+        all_docs = cls.mongo.db[cls.collection].find(filter)
 
         return [cls(**doc) for doc in all_docs]
 
@@ -140,8 +143,8 @@ class MongoModel(object):
             del self._doc[item]
 
     @classmethod
-    def delete_all(cls):
-        jobs = cls.get_all()
+    def delete_all(cls, filter={}):
+        jobs = cls.get_all(filter=filter)
 
         # total operations
         tot = [job.delete() for job in jobs]

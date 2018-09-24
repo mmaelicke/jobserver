@@ -43,7 +43,7 @@ class Job(MongoModel):
         for key in kwargs.keys():
             setattr(self, key, kwargs[key])
             
-    def update(self, data=None):
+    def update(self, data={}):
         self.edited = dt.utcnow()
         super(Job, self).update(data=data)
 

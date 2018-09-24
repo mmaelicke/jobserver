@@ -1,13 +1,21 @@
 """
 RESTful endpoint for Job
 """
-from flask import request, jsonify
+from flask import request, jsonify, g
 from flask_restful import Resource
 from bson.errors import InvalidId
 
 from jobserver.models.job import Job
 from jobserver.api import api_v1_blueprint, apiv1
 
+
+def get_user_bound_filter(roles=['superuser']):
+    # check if a user is logged in 
+    if g.user is not None and g.user.role.lower() not in roles:
+        return {'user_id': str(g.user.id)}
+    else:
+        return {}
+    
 
 class JobApi(Resource):
     def get(self, job_id):
@@ -26,8 +34,11 @@ class JobApi(Resource):
             JSON response to this GET Request
 
         """
+        # check if a user is logged in 
+        _filter = get_user_bound_filter(roles=['superuser', 'admin'])
+
         # get the Job
-        job = Job.get(job_id)
+        job = Job.get(job_id, filter=_filter)
 
         # return
         if job is None:
@@ -53,8 +64,11 @@ class JobApi(Resource):
             JSON response to this POST Request
 
         """
+        # check if a user is logged in 
+        _filter = get_user_bound_filter(roles=['superuser', 'admin'])
+
         # get the job
-        job = Job.get(job_id)
+        job = Job.get(job_id, filter=_filter)
 
         if job is None:
             return {'status': 404, 'message': 'No Job of id %s' % job_id}
@@ -90,15 +104,21 @@ class JobApi(Resource):
             JSON response to this PUT Request
 
         """
+        # check for existing job id
         if Job.id_exists(job_id):
             return {
                 'status': 409,
                 'message': 'A job of id %s already exists' % job_id
             }, 409
 
+        # get the passed data
         data = request.get_json()
         if data is None:
             data = dict()
+
+        # if a user is logged in, bind the job to this user
+        _filter = get_user_bound_filter(roles=['superuser', 'admin'])
+        data.update(_filter)
 
         # create the Job
         try:
@@ -112,9 +132,14 @@ class JobApi(Resource):
         # return
         return job.to_dict(stringify=True), 201
 
-    def delete(self, job_id):
+    def delete(self, job_id):        
+        # check if a user is logged in 
+        # check if a user is logged in 
+        _filter = get_user_bound_filter(roles=['superuser', 'admin'])
+        
         # get the job
-        job = Job.get(job_id)
+        job = Job.get(job_id, filter=_filter)
+            
         if job is None:
             return {'status': 404,
                     'message': 'No job of id %s found' % job_id}, 404
@@ -133,7 +158,11 @@ class JobApi(Resource):
 
 class JobsApi(Resource):
     def get(self):
-        jobs = Job.get_all()
+        # check if a user is logged in 
+        _filter = get_user_bound_filter(roles=['superuser', 'admin'])
+
+        # get the jobs
+        jobs = Job.get_all(filter=_filter)
 
         return {
             'found': len(jobs),
@@ -141,7 +170,10 @@ class JobsApi(Resource):
         }, 200
 
     def delete(self):
-        success, total = Job.delete_all()
+        # check if a user is logged in 
+        _filter = get_user_bound_filter(roles=['superuser', 'admin'])
+
+        success, total = Job.delete_all(filter=_filter)
 
         return {'status': 200,
                 'acknowledged': success == total,
@@ -174,6 +206,10 @@ def put_job_without_id():
     if data is None:
         data = dict()
 
+    # if a user is logged in, bind the job to this user 
+    _filter = get_user_bound_filter(roles=['superuser', 'admin'])
+    data.update(_filter)
+    
     # create the Job
     try:
         job = Job(**data)
@@ -186,8 +222,11 @@ def put_job_without_id():
 
 @api_v1_blueprint.route('/job/<string:job_id>/run', methods=['GET', 'POST', 'PUT'])
 def run_job(job_id):
+    # check if a user is logged in 
+    _filter = get_user_bound_filter(roles=['superuser', 'admin'])
+    
     # get the requested Job
-    job = Job.get(job_id)
+    job = Job.get(job_id, filter=_filter)
 
     if job is None:
         return jsonify({
