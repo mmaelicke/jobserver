@@ -150,6 +150,31 @@ class UserApi(Resource):
         }, 200
 
 
+class UsersApi(Resource):
+    @login_required
+    @role_required(roles=['admin'])
+    def get(self):
+        """GET all users
+
+        Get all users registered in the database. This can only be performed
+        by a superuser or users of a role defined in the decorator function.
+
+        Returns
+        -------
+        users : JSON
+            JSON serialized list of all Users
+
+        """
+        # get the users
+        users = User.get_all()
+
+        return {
+            'status': 200,
+            'found': len(users),
+            'users': users
+        }, 200
+
+
 class UserRegistrationApi(Resource):
     def put(self):
         """User registration
@@ -314,6 +339,7 @@ class UserActivationApi(Resource):
 
 
 auth_api.add_resource(UserApi, '/user/<string:user_id>', endpoint='user')
+auth_api.add_resource(UsersApi, '/users', endpoint='users')
 auth_api.add_resource(UserRegistrationApi, '/user', endpoint='registration')
 auth_api.add_resource(UserActivationApi, '/user/<string:user_id>/activate',
                       endpoint='activation')

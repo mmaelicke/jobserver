@@ -9,12 +9,15 @@ from jobserver.models.job import Job
 from jobserver.api import api_v1_blueprint, apiv1
 
 
-def get_user_bound_filter(roles=['superuser']):
+def get_user_bound_filter(roles=[]):
     # check if a user is logged in 
-    if g.user is not None and g.user.role.lower() not in roles:
-        return {'user_id': str(g.user.id)}
-    else:
-        return {}
+    if g.user is not None:
+        role = g.user.role
+        if role is None:
+            return {}
+        elif role.lower() in roles or role.lower() == 'superuser':
+            return {'user_id': str(g.user.id)}
+    return {}
     
 
 class JobApi(Resource):
@@ -35,7 +38,7 @@ class JobApi(Resource):
 
         """
         # check if a user is logged in 
-        _filter = get_user_bound_filter(roles=['superuser', 'admin'])
+        _filter = get_user_bound_filter(roles=['admin'])
 
         # get the Job
         job = Job.get(job_id, filter=_filter)
@@ -65,7 +68,7 @@ class JobApi(Resource):
 
         """
         # check if a user is logged in 
-        _filter = get_user_bound_filter(roles=['superuser', 'admin'])
+        _filter = get_user_bound_filter(roles=['admin'])
 
         # get the job
         job = Job.get(job_id, filter=_filter)
@@ -117,7 +120,7 @@ class JobApi(Resource):
             data = dict()
 
         # if a user is logged in, bind the job to this user
-        _filter = get_user_bound_filter(roles=['superuser', 'admin'])
+        _filter = get_user_bound_filter(roles=['admin'])
         data.update(_filter)
 
         # create the Job
@@ -135,7 +138,7 @@ class JobApi(Resource):
     def delete(self, job_id):        
         # check if a user is logged in 
         # check if a user is logged in 
-        _filter = get_user_bound_filter(roles=['superuser', 'admin'])
+        _filter = get_user_bound_filter(roles=['admin'])
         
         # get the job
         job = Job.get(job_id, filter=_filter)
@@ -159,7 +162,7 @@ class JobApi(Resource):
 class JobsApi(Resource):
     def get(self):
         # check if a user is logged in 
-        _filter = get_user_bound_filter(roles=['superuser', 'admin'])
+        _filter = get_user_bound_filter(roles=['admin'])
 
         # get the jobs
         jobs = Job.get_all(filter=_filter)
@@ -171,7 +174,7 @@ class JobsApi(Resource):
 
     def delete(self):
         # check if a user is logged in 
-        _filter = get_user_bound_filter(roles=['superuser', 'admin'])
+        _filter = get_user_bound_filter(roles=['admin'])
 
         success, total = Job.delete_all(filter=_filter)
 
@@ -207,7 +210,7 @@ def put_job_without_id():
         data = dict()
 
     # if a user is logged in, bind the job to this user 
-    _filter = get_user_bound_filter(roles=['superuser', 'admin'])
+    _filter = get_user_bound_filter(roles=['admin'])
     data.update(_filter)
     
     # create the Job
@@ -223,7 +226,7 @@ def put_job_without_id():
 @api_v1_blueprint.route('/job/<string:job_id>/run', methods=['GET', 'POST', 'PUT'])
 def run_job(job_id):
     # check if a user is logged in 
-    _filter = get_user_bound_filter(roles=['superuser', 'admin'])
+    _filter = get_user_bound_filter(roles=['admin'])
     
     # get the requested Job
     job = Job.get(job_id, filter=_filter)
