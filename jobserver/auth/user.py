@@ -21,6 +21,7 @@ address to your browser.</p>
 <a href="{1}">{1}</a>
 """
 
+
 class UserApi(Resource):
     @login_required
     @user_route

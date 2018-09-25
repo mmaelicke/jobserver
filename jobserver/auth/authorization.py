@@ -2,6 +2,7 @@ import base64
 from functools import wraps, partial
 
 from flask import jsonify, request, g, current_app
+from itsdangerous import BadSignature, SignatureExpired
 
 from jobserver.models.user import User
 
@@ -126,7 +127,19 @@ def load_user_from_header_authorization():
         token = auth_header[7:]
 
         # get the user
-        user = User.get_from_access_token(token=token)
+        try:
+            user = User.get_from_access_token(token=token)
+        except BadSignature:
+            return jsonify({
+                'status': 401,
+                'message': 'The passed access token was not valid.'
+            }), 401
+        except SignatureExpired:
+            return jsonify({
+                'status': 401,
+                'message': 'Your access token has expired. Please request a '
+                           'new one.'
+            }), 401
 
         # password is not required
         password = None
