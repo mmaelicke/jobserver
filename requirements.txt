@@ -1,7 +1,6 @@
 flask
 flask-restful
 flask-pymongo
-flask-mail
 pymongo
 dnspython
 pandas

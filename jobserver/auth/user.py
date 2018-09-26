@@ -5,13 +5,12 @@ import json
 
 from flask import request, url_for, current_app
 from flask_restful import Resource
-from flask_mail import Message
 
 from jobserver.auth import auth_api
 from jobserver.auth.authorization import login_required, user_route,\
     role_required
 from jobserver.models.user import User
-from jobserver.app import mail
+from jobserver.util.mail import Mail
 
 ACTIVATION_MAIL_TEMPLATE = """
 <h3>Account activation</h3>
@@ -228,12 +227,18 @@ class UserRegistrationApi(Resource):
                       _external=True)
 
         # build the activation mail and sent
-        msg = Message(
-            'Your account activation',
-            recipients=[user.email],
-            html=ACTIVATION_MAIL_TEMPLATE.format(email, url)
+#        msg = Message(
+#            'Your account activation',
+#            recipients=[user.email],
+#            html=ACTIVATION_MAIL_TEMPLATE.format(email, url)
+#        )
+        # send the activation mail
+        mail = Mail()
+        mail.send(
+            _to=user.email,
+            subject='Your account activation',
+            message=ACTIVATION_MAIL_TEMPLATE.format(email, url)
         )
-        mail.send(msg)
 
         return {
             'status': 201,
@@ -325,12 +330,14 @@ class UserActivationApi(Resource):
                       _external=True)
 
         # build the activation mail and sent
-        msg = Message(
-            'Your account activation',
-            recipients=[user.email],
-            html=ACTIVATION_MAIL_TEMPLATE.format(user.email, url)
-        )
-        mail.send(msg)
+#        msg = Message(
+#            'Your account activation',
+#            recipients=[user.email],
+#            html=ACTIVATION_MAIL_TEMPLATE.format(user.email, url)
+#        )
+#        mail.send(msg)
+        # TODO: implement new mail client as it will be working
+        print('Your forgot to implement the mail into this route')
 
         return {
             'status': 200,
