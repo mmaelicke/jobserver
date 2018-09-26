@@ -29,6 +29,7 @@ def check_login_state():
 
     # check if the login status shall be tested
     if not current_app.config.get('API_V1_LOGIN'):
+        g.user = None
         return None
 
     # check
