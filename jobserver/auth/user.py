@@ -335,9 +335,12 @@ class UserActivationApi(Resource):
 #            recipients=[user.email],
 #            html=ACTIVATION_MAIL_TEMPLATE.format(user.email, url)
 #        )
-#        mail.send(msg)
-        # TODO: implement new mail client as it will be working
-        print('Your forgot to implement the mail into this route')
+        mail = Mail()
+        mail.send(
+            user.email,
+            'Your new activation link',
+            ACTIVATION_MAIL_TEMPLATE.format(user.email, url)
+        )
 
         return {
             'status': 200,
