@@ -162,8 +162,51 @@ class JobApi(Resource):
 
 class JobsApi(Resource):
     def get(self):
+        """Get all Jobs
+
+        If Authentication is enabled, the Jobs will be be filtered for all
+        Job instances the current user is authorized for. A superuser will
+        always see all jobs.
+
+        Returns
+        -------
+        response : JSON
+            A JSON serialized response of all found Jobs
+
+        """
         # check if a user is logged in 
         _filter = get_user_bound_filter(roles=['admin'])
+
+        # get the jobs
+        jobs = Job.get_all(filter=_filter)
+
+        return {
+            'found': len(jobs),
+            'jobs': [job.to_dict(stringify=True) for job in jobs]
+        }, 200
+
+    def post(self):
+        """Filter Jobs
+
+        Return all Job instances filtered by the passed filter. If
+        Authentication is enabled, a user filter will be added automatically.
+        The filter has to be passed in JSON POST body. The header needs to set
+        Content-Type: application/json
+
+        Returns
+        -------
+        response : JSON
+        A JSON serialized response of all filtered Jobs
+
+        """
+        # check if a user is logged in
+        _filter = get_user_bound_filter(roles=['admin'])
+
+        # check the body
+        body = request.get_json()
+        if body is None:
+            body = {}
+        _filter.update(body)
 
         # get the jobs
         jobs = Job.get_all(filter=_filter)

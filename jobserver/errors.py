@@ -8,3 +8,7 @@ class JobExecutionRestrictedError(RuntimeError, JobserverError):
 
 class CodeBlockMissingError(AttributeError, JobserverError):
     pass
+
+
+class DisabledError(ValueError, JobserverError):
+    pass

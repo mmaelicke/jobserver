@@ -413,8 +413,8 @@ class UserResendByMailApi(Resource):
 
         return {
             'status': 200,
-            'message': 'A new activation mail has been sent to: %s.' +
-                       'Your user ID is: %s' % (user.email, str(user.id))
+            'message': 'A new activation mail has been sent to: %s. Your '
+                       'user ID is: %s' % (user.email, str(user.id))
         }, 200
 
 

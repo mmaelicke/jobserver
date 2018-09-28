@@ -10,6 +10,7 @@ from jobserver.errors import CodeBlockMissingError
 
 class Process:
     def __init__(self, f, data, args, kwargs, job):
+        self.type = 'function'
         self.f = f
         self.data = data
         self.args = args
@@ -57,6 +58,7 @@ class Process:
     def to_dict(self):
         return {
             'name': self.f.__name__,
+            'type': self.type,
             'args': self.args,
             'kwargs': self.kwargs
         }
@@ -72,6 +74,7 @@ class EvalProcess(Process):
 
         # call parent init method
         super(EvalProcess, self).__init__(None, data, args, kwargs, job)
+        self.type = 'eval'
 
     def _run(self):
         return eval(
@@ -90,6 +93,7 @@ class FileProcess(Process):
         
         # call parent init method
         super(FileProcess, self).__init__(None, data, args, kwargs, job)
+        self.type = 'file'
 
     def _run(self):
         process_result = subprocess.run(

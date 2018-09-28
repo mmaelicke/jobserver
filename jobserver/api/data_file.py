@@ -52,7 +52,7 @@ class DataFilesApi(Resource):
     def get(self):
         files = DataFile.find_all()
 
-        file_list = [{'name': f.name(), 'path': f.path} for f in files]
+        file_list = [f.to_dict() for f in files]
 
         return {
             'found': len(file_list),

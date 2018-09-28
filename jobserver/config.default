@@ -14,6 +14,8 @@ class Config:
     DELETED_USER_PATH = os.path.join(APP_PATH, 'backup/deleted_users.json')
     ACCESS_TOKEN_LIFESPAN = 1200  # 20 minutes
     API_V1_LOGIN = True
+    PROCESS_EVAL_ALLOWED = False
+    PROCESS_FILE_ALLOWED = True
     MAIL_SERVER = 'smtp.yourserver.com'
     MAIL_PORT = 587
     MAIL_USERNAME = 'username'

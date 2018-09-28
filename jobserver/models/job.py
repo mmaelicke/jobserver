@@ -18,14 +18,14 @@ Build a new Job, containing information about the Process to be executed.
 from threading import Thread
 from datetime import datetime as dt
 
-from flask import g
+from flask import g, current_app
 
 from jobserver.models.mongo import MongoModel
-from jobserver.models.process import Process
+from jobserver.models.process import Process, FileProcess
 from jobserver.models.data_file import DataFile
 from jobserver.models.data import BaseDataModel
 from jobserver.util import load_script_func
-from jobserver.errors import JobExecutionRestrictedError
+from jobserver.errors import JobExecutionRestrictedError, DisabledError
 
 
 class Job(MongoModel):
@@ -251,19 +251,54 @@ class Job(MongoModel):
         """
         # script was defined
         if self.script is not None and isinstance(self.script, dict):
-            # switch script type
+            # ---------------------------------------------------
+            #       function Process
+            # ---------------------------------------------------
             if self.script.get('type', 'function') == 'function':
-                # use the correct class
-                ProcessClass = Process
-
                 # load the function
                 func = load_script_func('scripts', self.script['name'])
 
-            elif self.script.get('type', 'function') == 'file':
-                raise NotImplementedError(
-                    'File Processes are not supported yet'
+                # return the Process instance
+                return Process(
+                    f=func,
+                    data=data.read(),
+                    args=self.script.get('args', []),
+                    kwargs=self.script.get('kwargs', {}),
+                    job=self
                 )
+
+            # ---------------------------------------------------
+            #       file Process
+            # ---------------------------------------------------
+            elif self.script.get('type', 'function') == 'file':
+                # Execution allowed?
+                if not current_app.config.get('PROCESS_FILE_ALLOWED'):
+                    raise DisabledError(
+                        'File script execution is disabled on this server'
+                    )
+
+                # check if the name was set
+                if not self.script.get('name', False):
+                    raise ValueError('No script file name specified.')
+
+                # return the Process instance
+                return FileProcess(
+                    filename=self.script.get('name'),
+                    data=data.read(),
+                    args=self.script.get('args', []),
+                    kwargs=self.script.get('kwargs', {}),
+                    job=self
+                )
+
+            # ---------------------------------------------------
+            #       Eval Process
+            # ---------------------------------------------------
             elif self.script.get('type', 'function') == 'eval':
+                # Execution allowed?
+                if not current_app.config.get('PROCESS_EVAL_ALLOWED'):
+                    raise DisabledError(
+                        'Eval script execution is disabled on this server'
+                    )
                 raise NotImplementedError(
                     'Eval Processes are not supported yet'
                 )
@@ -271,14 +306,6 @@ class Job(MongoModel):
                 raise ValueError('Script Type %s is not known.'
                                  % self.script.get('type', 'NotSet'))
 
-            # return the Process instance
-            return ProcessClass(
-                func,
-                data.read(),
-                args=self.script.get('args', []),
-                kwargs=self.script.get('kwargs', {}),
-                job=self
-            )
 
         # script_name shortcut used
         elif self.script_name is not None:

@@ -11,7 +11,7 @@ class PostInstallCommand(install):
         # rename the config file
         if not os.path.exists(os.path.join(APP_PATH, 'config.py')):
             shutil.copy(
-                os.path.join(APP_PATH, 'config.py.default'),
+                os.path.join(APP_PATH, 'config.default'),
                 os.path.join(APP_PATH, 'config.py')
             )
 
@@ -25,7 +25,7 @@ class PostDevelopCommand(develop):
         # rename the config file
         if not os.path.exists(os.path.join(APP_PATH, 'config.py')):
             shutil.copy(
-                os.path.join(APP_PATH, 'config.py.default'),
+                os.path.join(APP_PATH, 'config.default'),
                 os.path.join(APP_PATH, 'config.py')
             )
 
