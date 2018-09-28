@@ -200,13 +200,13 @@ class JobsApi(Resource):
 
         """
         # check if a user is logged in
-        _filter = get_user_bound_filter(roles=['admin'])
+        user_filter = get_user_bound_filter(roles=['admin'])
 
         # check the body
         body = request.get_json()
         if body is None:
             body = {}
-        _filter.update(body)
+        _filter = {"$and": [user_filter, body]}
 
         # get the jobs
         jobs = Job.get_all(filter=_filter)

@@ -17,6 +17,7 @@ class PostInstallCommand(install):
 
         install.run()
 
+
 class PostDevelopCommand(develop):
     def run(self):
         import os, shutil
