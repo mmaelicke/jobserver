@@ -28,6 +28,7 @@ script:
 
   # build the pdf
   - make latexpdf
+  - cp build/latex/jobserver.pdf build/html/jobserver.pdf
 
 deploy:
   provider: pages
