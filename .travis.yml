@@ -1,0 +1,39 @@
+sudo: true
+language: python
+python:
+  - "3.6"
+
+cache: pip
+
+before_install:
+  # update the system and pip
+  - sudo apt-get update
+  - pip install --upgrade pip
+
+
+install:
+  # update pip and install sphinx
+  - pip install sphinx
+
+  # install requirements of docs
+  - pip install -r requirements.rtd.txt
+
+  # install latexmk
+  - sudo apt-get install latexmk
+
+script:
+  # build html docs
+  - cd docs
+  - make html
+
+  # build the pdf
+  - make latexpdf
+
+deploy:
+  provider: pages
+  skip_cleanup: true
+  github_token: $GITHUB_TOKEN
+  keep_history: true
+  on:
+    branch: master
+  local_dir: build/html
