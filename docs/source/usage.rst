@@ -1,0 +1,297 @@
+==========
+User guide
+==========
+
+Using a RESTful API
+===================
+
+Sending a request
+-----------------
+
+It is easiest to test the API with some kind of application. Possible
+applications are curl, Postman or the requests Python module. If you want to
+sent for example an PUT request to the server containing the data
+``{'foo':'bar'}``, you could do this like:
+
+.. code-block:: bash
+
+    curl -XPUT 'http://localhost:5000/job/dk4me73jw6r'  -H 'Content-Type: application/json' -d '{"foo": "bar"}'
+
+or
+
+.. code-block:: python
+
+    import requests
+    payload = dict(foo='bar')
+    requests.put('http://localhost:5000/job/dk4me73jw6r', json=payload).contents
+
+
+Both will return something similar to:
+
+.. code-block:: json
+
+    {
+      "_id": "5b864f7172f30c24dda84e15",
+      "created": "2018-08-29 07:46:57.133147",
+      "finished": "None",
+      "foo": "42",
+      "result": "None",
+      "started": "None"
+    }
+
+
+Postman is a GUI application available as a standalone app or as a Chrome app.
+It's really straightforward and works graphically. Above that you are able to
+store requests and set up test scenarios. Therefore using Postman is highly
+recommended.
+
+Request methods
+---------------
+
+The general meaning of each of the four common HTTP methods are shown below
+in the table.
+
++--------+----------------------------------------------------------------------------------------+
+| method |                                         meaning                                        |
++--------+----------------------------------------------------------------------------------------+
+| GET    | request a resource from the server. Will return a 404 if the resource cannot be found. |
++--------+----------------------------------------------------------------------------------------+
+| POST   | Sent with new data to update an existing resource.                                     |
++--------+----------------------------------------------------------------------------------------+
+| PUT    | Sent with new data (may be optional for some resources) to create a new resource.      |
++--------+----------------------------------------------------------------------------------------+
+| DELETE | Delete the requested resource.                                                         |
++--------+----------------------------------------------------------------------------------------+
+
+
+Managing DataFiles
+==================
+
+.. note::
+
+    The DataFiles Model and the corresponding URL endpoint are for
+    development only. This would not be suitable to be integrated into a
+    productive environment.
+
+A DataFile is a model subclass of a more general Data model. It can be
+identified by its name, which is the filename including the file extension.
+That means ``timeseries.csv`` and ``timeseries.dat`` are two different
+DataFiles. The file extensions are not case sensitive.
+
+Endpoints
+---------
+
+The application exposes two endpoints for managing datafiles:
+
+* [GET, POST, PUT, DELETE] ``/datafile/<name>``, where ``<name>`` should be
+  replaced with the actual file name
+* [GET, DELETE] ``/datafiles``
+
+datafile
+~~~~~~~~
+
+The datafile endpoint has four methods:
+
+* [GET] ``/datafile/name`` will return metadata about the requested file.
+  This method also accepts a URL parameter ``format``. There are four valid
+  values for ``format``, 'csv','json', 'html' and 'txt'. If one of these is
+  set, the file content will be returned in the specified format. That will
+  **not** be of ``Content-Type: application/json``.
+* [PUT, POST] ``/datafile/name`` will upload a new file and store it as the
+  given *name* in the data folder. The file has to be submitted using
+  ``enctype='multipart/form-data'`` and be identified by the name 'file'. In
+  Postman this can be set the Body section of type form-data and key file. If
+  a HTML upload is used, it has to look like:
+
+.. code-block:: html
+
+    <form action="url/to/endpoint" method="post" enctype="multipart/form-data">
+        <input type="file" name="file">
+        <input type="submit">
+    </form>
+
+* [DELETE] ``/datafie/name`` will delete the file from the data folder,
+  without asking again.
+
+datafiles
+~~~~~~~~~
+
+The datafiles endpoints has two methods:
+
+* [GET] ``/datafiles`` will return a list of metadata about all DataFiles found
+  in the data folder.
+* [DELETE] ``/datafiles`` will delete **all** DataFiles from the data folder.
+
+
+Managing Jobs
+=============
+
+
+The Job API is the core API and most important API of Jobserver.
+
+Endpoints
+---------
+
+The application exposes several endpoints to accomplish different tasks. The
+Job management uses the endpoint ``/job/:id``, where *:id* is replaced by the
+actual ID of the Job to be managed. Additionally, there are several extra
+endpoints related to jobs:
+
+* [GET; POST; PUT; DELETE] ``/job/:id`` is used to view edit, create and
+  delete Jobs of specified ``:id``.
+* [PUT] ``/job``, will create a job with autogenerated id
+* [GET; POST; PUT] ``/job:id/run`` will start the Job of *:id*
+* [GET, DELETE] ``/jobs`` will return/delete a list of all Jobs
+
+
+Basic example
+=============
+
+For brevity, we will skip the ``-H 'Content-Type: application/json'`` flag and
+the host ``http://localhost:5000`` from the examples and just give the method
+and endpoint. If you want to run the example, you'll have to add the flags to
+curl. An example workflow could look like:
+
+1. Put a new Job. A Job needs at least a script specified and in most cases a
+data bound to it. Unless a script is called, that does not need data input.
+Here, to demonstrate the flexibility of the Job API, we will create a Job
+with a specified script, but omit the data to define it later on. As long as
+we wish to load a script-function from the :mod:`jobserver.scripts`
+submodule and no args and kwargs are specified, we can also use the script
+shortcut of just defining the name of the function.
+
+.. code-block:: bash
+
+    curl -XPUT /job -d '{"script_name": "summary"}'
+
+output:
+
+.. code-block:: json
+
+    {
+        "_id": "5b9011469eb82b0d84ca212f",
+        "created": "2018-09-05 17:24:22.607225",
+        "finished": "None",
+        "result": "None",
+        "script_name": "summary",
+        "started": "None"
+    }
+
+The API will most likely return another ID. Then, you'll have to replace the
+ID used in these examples with your ID.
+
+2. Before we can start the job, we have to specify the DataFile to use. This
+could have been done in the first step as well. To update a job, we can use
+the ``POST`` endpoint, sending the new data.
+
+.. code-block:: bash
+
+    curl -XPOST /job/5b9011469eb82b0d84ca212f -d '{"datafile": "timeseries.csv"}'
+
+.. code-block:: json
+
+    {
+        "created": "2018-09-05 17:24:22.607000",
+        "started": "None",
+        "finished": "None",
+        "result": "None",
+        "script_name": "summary",
+        "edited": "2018-09-05 17:25:17.421061",
+        "datafile": "timeseries.csv",
+        "_id": "5b9011469eb82b0d84ca212f"
+    }
+
+3. Start the Job.
+
+.. code-block:: bash
+
+    curl -XGET /job/5b9011469eb82b0d84ca212f/run
+
+which yields:
+
+.. code-block:: json
+
+    {
+        "_id": "5b9011469eb82b0d84ca212f",
+        "created": "2018-09-05 17:24:22.607000",
+        "data": {
+            "name": "timeseries.csv",
+            "path": "/home/mirko/Dropbox/python/REST-nigma/rest_nigma/data/timeseries.csv",
+            "size": "566 KB",
+            "type": "datafile"
+        },
+        "datafile": "timeseries.csv",
+        "edited": "2018-09-05 17:25:58.674266",
+        "finished": "None",
+        "result": "None",
+        "script": {
+            "args": "[]",
+            "kwargs": {},
+            "name": "summary"
+        },
+        "script_name": "summary",
+        "started": "2018-09-05 17:25:58.673719"
+    }
+
+As you can see, the Job did set the module, and process names and arguments.
+The `started` indicates, that the process is now started without error.
+However, the `result` and `finished` are still empty, because the Job status
+was returned directly after starting the job. If we need the status, we have
+to request to ``GET`` the Job instance again.
+
+.. note::
+
+    It is absolutely possible that the result is already there, in the
+    response of the start job request. The reason is, that the Job is started
+    asynchronously and the Process fills in the finish time and the result.
+    In case the Process finishes really quickly, it will have updated the
+    Job object in the database, before the Job could infer and fill in all
+    the information about the data file.
+
+4. Request the Job:
+
+.. code-block:: bash
+
+    curl -XGET /job/5b9011469eb82b0d84ca212f
+
+output:
+
+.. code-block:: json
+
+    {
+        "created": "2018-09-05 17:24:22.607000",
+        "started": "2018-09-05 17:25:58.673000",
+        "finished": "2018-09-05 17:25:59.756000",
+        "result": {
+            "value": {
+                "count": "12000.0",
+                "mean": "40.10492551050158",
+                "std": "12.660818317676181",
+                "min": "6.746015545337676",
+                "25%": "31.012809495045943",
+                "50%": "38.82110180726302",
+                "75%": "47.78757677274963",
+                "max": "104.02590583156969"
+            }
+        },
+        "script_name": "summary",
+        "datafile": "timeseries.csv",
+        "edited": "2018-09-05 17:25:59.757000",
+        "data": {
+            "type": "datafile",
+            "path": "/home/mirko/Dropbox/python/REST-nigma/rest_nigma/data/timeseries.csv",
+            "name": "timeseries.csv",
+            "size": "566 KB"
+        },
+        "script": {
+            "name": "summary",
+            "args": "[]",
+            "kwargs": {}
+        },
+        "time_sec": "1.083251",
+        "_id": "5b9011469eb82b0d84ca212f"
+    }
+
+Now, there is the result. This dummy script, producing just a few statistical
+numbers on a timeseries created from a gamma distribution took over one
+second. The reason is a random time delay between 1 and 5 seconds.
