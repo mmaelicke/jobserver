@@ -23,6 +23,7 @@ from flask import g, current_app
 from jobserver.models.mongo import MongoModel
 from jobserver.models.process import Process, FileProcess
 from jobserver.models.data_file import DataFile
+from jobserver.models.data_mongo import DataMongo
 from jobserver.models.data import BaseDataModel
 from jobserver.util import load_script_func
 from jobserver.errors import JobExecutionRestrictedError, DisabledError
@@ -192,8 +193,14 @@ class Job(MongoModel):
                 return BaseDataModel(
                     **{k: v for k, v in self.data.items() if k != 'type'}
                 )
+            elif self.data.get('type') == 'mongodb':
+                if self.data.get('id') is None:
+                    raise ValueError('A mongodb data type needs an ID.')
+                else:
+                    # TODO: maybe add here if the user is allowed?
+                    return DataMongo.get(_id=self.data.get('id'))
             else:
-                ValueError('Data Type %s is not known.'
+                raise ValueError('Data Type %s is not known.'
                            % self.data.get('type', 'NotSet'))
 
         elif self.datafile is not None:
