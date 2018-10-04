@@ -96,6 +96,19 @@ html_theme_options = {
     'show_related': True,
     'sidebar_collapse': True,
     'body_text_align': 'justify',
+    'extra_nav_links': {
+        'Download PDF': 'jobserver.pdf'
+    }
+}
+
+html_sidebars = {
+    '**': [
+        'about.html',
+        'navigation.html',
+        'relations.html',
+        'searchbox.html',
+        'donate.html'
+    ]
 }
 
 # Theme options are theme-specific and customize the look and feel of a theme
