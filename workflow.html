@@ -1,0 +1,208 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Application workflow &#8212; jobserver 0.1.0 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="User guide" href="usage.html" />
+    <link rel="prev" title="Installation" href="installation.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="application-workflow">
+<h1>Application workflow<a class="headerlink" href="#application-workflow" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="job">
+<h2>Job<a class="headerlink" href="#job" title="Permalink to this headline">¶</a></h2>
+<p>I have set some definitions in order to be able to model a proper workflow.
+We have the actual algorithm, that shall be exposed by Jobserver. These
+algorithms can be a Python function, Python script or even any kind of
+command line tool. Here we call these algortihms <strong>scripts</strong>.</p>
+<p>In the App, a <em>script</em> is run by unit called <strong>Process</strong>. There will be
+different Process instance, e.g. a Process running a Python function, a
+Process operating multicore, a Process running a file and capturing the
+output etc.</p>
+<p>In case a user wants to start a <em>Process</em>, he is creating a <strong>Job</strong>. One Job is
+bound to the processing of one single <em>Process</em>, so far. But pipelined
+scripts executed by a single Job instance is planned for the future.
+Jobs do also manage the <em>Process</em> parameters and authentication. This way,
+the number of Jobs (simultaneously or total, whatever you need) can be limited
+by User, if needed. Once a <em>Process</em> has finished, the Job will also include
+the output. In short: a job collects all the information needed to make a
+algorithm model run reproducible, while not exposing any detail about the
+algorithm itself. That means Jobs can public, even for restricted code.</p>
+<div class="section" id="binding-data-to-a-job">
+<h3>Binding data to a Job<a class="headerlink" href="#binding-data-to-a-job" title="Permalink to this headline">¶</a></h3>
+<p>The Jobserver implements different types of data that are handled in
+different ways. This does not model the type of the actual data, like
+time series, areal photo and so on, but the way the data is stored.</p>
+<ul class="simple">
+<li><strong>DataFile [type=’datafile’]</strong> are files that are actually stored on the
+filesystem. The User can set a DataFile by name that is already there or
+he has just uploaded. In a productive version, this could be used for example
+for public files.</li>
+<li><strong>Data on MongoDB [type=’mongodb’]</strong> is a data model that represents data,
+which is stored in the MongoDB. It can be any data that is JSON
+serializable. It is further described by a <code class="docutils literal notranslate"><span class="pre">datatype</span></code> property, which
+handles the conversion into the correct Python data structure, before being
+passed to the script.</li>
+<li><strong>Data on the Fly [type=’raw_data’]</strong> is defined as a Job property. It can
+be of any JSON serializable type. This is usually used in case the data is
+highly specific to the script, or the user is in development process.</li>
+</ul>
+</div>
+<div class="section" id="binding-a-process-to-a-job">
+<h3>Binding a Process to a Job<a class="headerlink" href="#binding-a-process-to-a-job" title="Permalink to this headline">¶</a></h3>
+<p>Any algorithm that is run on the server is represented by a <em>Process</em>.
+Jobserver offers different Processes, not all are tested so far.</p>
+<ul class="simple">
+<li><strong>Process [type=’function’]</strong> as the base class of all Processes, that will
+run an importable function with given parameter and pre-loaded data.</li>
+<li><strong>FileProcess [type=’file’]</strong> will behave much like the base class, but run
+an executable file from the file system. All requirements for this file
+have to be matched. The STDOUT and STDERR will be cached and bound to the
+Job as result. The <em>FileProcess</em> is not limited to Python files.</li>
+<li><strong>EvalProcess [type=’eval’]</strong> takes raw Python code as input and will run
+that code with the bound data pre-loaded. <strong>Note</strong>, this Eval will have
+access to the server and should be limited to superusers.</li>
+</ul>
+<p>As of this writing, only the base <em>Process</em> is tested.</p>
+</div>
+</div>
+<div class="section" id="datafile">
+<h2>DataFile<a class="headerlink" href="#datafile" title="Permalink to this headline">¶</a></h2>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">DataFile are development only. They should not be implemented as is into
+a productive environment. Beforehand, they would need to be bound on user
+level and some kind of permission model.</p>
+</div>
+<p>A DataFile unit represents an actual file in the data subfolder of Jobserver.
+Only files of registered file extensions will be recognized as a DataFile.
+The model can return meta data about one or all files, read the content of
+the file and pass it to a Job instance, upload new files or delete existing
+files. It is controlled by the <em>datafile</em> and <em>datafiles</em> endpoints.
+One scenario of implementing DataFiles into a productive system could be
+temporary files allowing the users to upload data and test it, before passing
+it to the database. If used this way, you’ll have to implement a control on
+the upload and size of this folder on the server side, as Jobserver will just
+save anything of allowed file extension the user uploads.</p>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">jobserver</a></h1>
+
+
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=mmaelicke&repo=jobserver&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Application workflow</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#job">Job</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#datafile">DataFile</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="usage.html">User guide</a></li>
+</ul>
+
+
+<hr />
+<ul>
+    
+    <li class="toctree-l1"><a href="jobserver.pdf">Download PDF</a></li>
+    
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="installation.html" title="previous chapter">Installation</a></li>
+      <li>Next: <a href="usage.html" title="next chapter">User guide</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2018, Mirko Mälicke.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/workflow.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

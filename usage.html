@@ -1,0 +1,406 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>User guide &#8212; jobserver 0.1.0 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="Application workflow" href="workflow.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="user-guide">
+<h1>User guide<a class="headerlink" href="#user-guide" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="using-a-restful-api">
+<h2>Using a RESTful API<a class="headerlink" href="#using-a-restful-api" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="sending-a-request">
+<h3>Sending a request<a class="headerlink" href="#sending-a-request" title="Permalink to this headline">¶</a></h3>
+<p>It is easiest to test the API with some kind of application. Possible
+applications are curl, Postman or the requests Python module. If you want to
+sent for example an PUT request to the server containing the data
+<code class="docutils literal notranslate"><span class="pre">{'foo':'bar'}</span></code>, you could do this like:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>curl -XPUT <span class="s1">&#39;http://localhost:5000/job/dk4me73jw6r&#39;</span>  -H <span class="s1">&#39;Content-Type: application/json&#39;</span> -d <span class="s1">&#39;{&quot;foo&quot;: &quot;bar&quot;}&#39;</span>
+</pre></div>
+</div>
+<p>or</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">requests</span>
+<span class="n">payload</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">foo</span><span class="o">=</span><span class="s1">&#39;bar&#39;</span><span class="p">)</span>
+<span class="n">requests</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="s1">&#39;http://localhost:5000/job/dk4me73jw6r&#39;</span><span class="p">,</span> <span class="n">json</span><span class="o">=</span><span class="n">payload</span><span class="p">)</span><span class="o">.</span><span class="n">contents</span>
+</pre></div>
+</div>
+<p>Both will return something similar to:</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+  <span class="nt">&quot;_id&quot;</span><span class="p">:</span> <span class="s2">&quot;5b864f7172f30c24dda84e15&quot;</span><span class="p">,</span>
+  <span class="nt">&quot;created&quot;</span><span class="p">:</span> <span class="s2">&quot;2018-08-29 07:46:57.133147&quot;</span><span class="p">,</span>
+  <span class="nt">&quot;finished&quot;</span><span class="p">:</span> <span class="s2">&quot;None&quot;</span><span class="p">,</span>
+  <span class="nt">&quot;foo&quot;</span><span class="p">:</span> <span class="s2">&quot;42&quot;</span><span class="p">,</span>
+  <span class="nt">&quot;result&quot;</span><span class="p">:</span> <span class="s2">&quot;None&quot;</span><span class="p">,</span>
+  <span class="nt">&quot;started&quot;</span><span class="p">:</span> <span class="s2">&quot;None&quot;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>Postman is a GUI application available as a standalone app or as a Chrome app.
+It’s really straightforward and works graphically. Above that you are able to
+store requests and set up test scenarios. Therefore using Postman is highly
+recommended.</p>
+</div>
+<div class="section" id="request-methods">
+<h3>Request methods<a class="headerlink" href="#request-methods" title="Permalink to this headline">¶</a></h3>
+<p>The general meaning of each of the four common HTTP methods are shown below
+in the table.</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="8%" />
+<col width="92%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td>method</td>
+<td>meaning</td>
+</tr>
+<tr class="row-even"><td>GET</td>
+<td>request a resource from the server. Will return a 404 if the resource cannot be found.</td>
+</tr>
+<tr class="row-odd"><td>POST</td>
+<td>Sent with new data to update an existing resource.</td>
+</tr>
+<tr class="row-even"><td>PUT</td>
+<td>Sent with new data (may be optional for some resources) to create a new resource.</td>
+</tr>
+<tr class="row-odd"><td>DELETE</td>
+<td>Delete the requested resource.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="section" id="managing-datafiles">
+<h2>Managing DataFiles<a class="headerlink" href="#managing-datafiles" title="Permalink to this headline">¶</a></h2>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The DataFiles Model and the corresponding URL endpoint are for
+development only. This would not be suitable to be integrated into a
+productive environment.</p>
+</div>
+<p>A DataFile is a model subclass of a more general Data model. It can be
+identified by its name, which is the filename including the file extension.
+That means <code class="docutils literal notranslate"><span class="pre">timeseries.csv</span></code> and <code class="docutils literal notranslate"><span class="pre">timeseries.dat</span></code> are two different
+DataFiles. The file extensions are not case sensitive.</p>
+<div class="section" id="endpoints">
+<h3>Endpoints<a class="headerlink" href="#endpoints" title="Permalink to this headline">¶</a></h3>
+<p>The application exposes two endpoints for managing datafiles:</p>
+<ul class="simple">
+<li>[GET, POST, PUT, DELETE] <code class="docutils literal notranslate"><span class="pre">/datafile/&lt;name&gt;</span></code>, where <code class="docutils literal notranslate"><span class="pre">&lt;name&gt;</span></code> should be
+replaced with the actual file name</li>
+<li>[GET, DELETE] <code class="docutils literal notranslate"><span class="pre">/datafiles</span></code></li>
+</ul>
+<div class="section" id="datafile">
+<h4>datafile<a class="headerlink" href="#datafile" title="Permalink to this headline">¶</a></h4>
+<p>The datafile endpoint has four methods:</p>
+<ul class="simple">
+<li>[GET] <code class="docutils literal notranslate"><span class="pre">/datafile/name</span></code> will return metadata about the requested file.
+This method also accepts a URL parameter <code class="docutils literal notranslate"><span class="pre">format</span></code>. There are four valid
+values for <code class="docutils literal notranslate"><span class="pre">format</span></code>, ‘csv’,’json’, ‘html’ and ‘txt’. If one of these is
+set, the file content will be returned in the specified format. That will
+<strong>not</strong> be of <code class="docutils literal notranslate"><span class="pre">Content-Type:</span> <span class="pre">application/json</span></code>.</li>
+<li>[PUT, POST] <code class="docutils literal notranslate"><span class="pre">/datafile/name</span></code> will upload a new file and store it as the
+given <em>name</em> in the data folder. The file has to be submitted using
+<code class="docutils literal notranslate"><span class="pre">enctype='multipart/form-data'</span></code> and be identified by the name ‘file’. In
+Postman this can be set the Body section of type form-data and key file. If
+a HTML upload is used, it has to look like:</li>
+</ul>
+<div class="highlight-html notranslate"><div class="highlight"><pre><span></span><span class="p">&lt;</span><span class="nt">form</span> <span class="na">action</span><span class="o">=</span><span class="s">&quot;url/to/endpoint&quot;</span> <span class="na">method</span><span class="o">=</span><span class="s">&quot;post&quot;</span> <span class="na">enctype</span><span class="o">=</span><span class="s">&quot;multipart/form-data&quot;</span><span class="p">&gt;</span>
+    <span class="p">&lt;</span><span class="nt">input</span> <span class="na">type</span><span class="o">=</span><span class="s">&quot;file&quot;</span> <span class="na">name</span><span class="o">=</span><span class="s">&quot;file&quot;</span><span class="p">&gt;</span>
+    <span class="p">&lt;</span><span class="nt">input</span> <span class="na">type</span><span class="o">=</span><span class="s">&quot;submit&quot;</span><span class="p">&gt;</span>
+<span class="p">&lt;/</span><span class="nt">form</span><span class="p">&gt;</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li>[DELETE] <code class="docutils literal notranslate"><span class="pre">/datafie/name</span></code> will delete the file from the data folder,
+without asking again.</li>
+</ul>
+</div>
+<div class="section" id="datafiles">
+<h4>datafiles<a class="headerlink" href="#datafiles" title="Permalink to this headline">¶</a></h4>
+<p>The datafiles endpoints has two methods:</p>
+<ul class="simple">
+<li>[GET] <code class="docutils literal notranslate"><span class="pre">/datafiles</span></code> will return a list of metadata about all DataFiles found
+in the data folder.</li>
+<li>[DELETE] <code class="docutils literal notranslate"><span class="pre">/datafiles</span></code> will delete <strong>all</strong> DataFiles from the data folder.</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="section" id="managing-jobs">
+<h2>Managing Jobs<a class="headerlink" href="#managing-jobs" title="Permalink to this headline">¶</a></h2>
+<p>The Job API is the core API and most important API of Jobserver.</p>
+<div class="section" id="id1">
+<h3>Endpoints<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
+<p>The application exposes several endpoints to accomplish different tasks. The
+Job management uses the endpoint <code class="docutils literal notranslate"><span class="pre">/job/:id</span></code>, where <em>:id</em> is replaced by the
+actual ID of the Job to be managed. Additionally, there are several extra
+endpoints related to jobs:</p>
+<ul class="simple">
+<li>[GET; POST; PUT; DELETE] <code class="docutils literal notranslate"><span class="pre">/job/:id</span></code> is used to view edit, create and
+delete Jobs of specified <code class="docutils literal notranslate"><span class="pre">:id</span></code>.</li>
+<li>[PUT] <code class="docutils literal notranslate"><span class="pre">/job</span></code>, will create a job with autogenerated id</li>
+<li>[GET; POST; PUT] <code class="docutils literal notranslate"><span class="pre">/job:id/run</span></code> will start the Job of <em>:id</em></li>
+<li>[GET, DELETE] <code class="docutils literal notranslate"><span class="pre">/jobs</span></code> will return/delete a list of all Jobs</li>
+</ul>
+</div>
+</div>
+<div class="section" id="basic-example">
+<h2>Basic example<a class="headerlink" href="#basic-example" title="Permalink to this headline">¶</a></h2>
+<p>For brevity, we will skip the <code class="docutils literal notranslate"><span class="pre">-H</span> <span class="pre">'Content-Type:</span> <span class="pre">application/json'</span></code> flag and
+the host <code class="docutils literal notranslate"><span class="pre">http://localhost:5000</span></code> from the examples and just give the method
+and endpoint. If you want to run the example, you’ll have to add the flags to
+curl. An example workflow could look like:</p>
+<p>1. Put a new Job. A Job needs at least a script specified and in most cases a
+data bound to it. Unless a script is called, that does not need data input.
+Here, to demonstrate the flexibility of the Job API, we will create a Job
+with a specified script, but omit the data to define it later on. As long as
+we wish to load a script-function from the <code class="xref py py-mod docutils literal notranslate"><span class="pre">jobserver.scripts</span></code>
+submodule and no args and kwargs are specified, we can also use the script
+shortcut of just defining the name of the function.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>curl -XPUT /job -d <span class="s1">&#39;{&quot;script_name&quot;: &quot;summary&quot;}&#39;</span>
+</pre></div>
+</div>
+<p>output:</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="nt">&quot;_id&quot;</span><span class="p">:</span> <span class="s2">&quot;5b9011469eb82b0d84ca212f&quot;</span><span class="p">,</span>
+    <span class="nt">&quot;created&quot;</span><span class="p">:</span> <span class="s2">&quot;2018-09-05 17:24:22.607225&quot;</span><span class="p">,</span>
+    <span class="nt">&quot;finished&quot;</span><span class="p">:</span> <span class="s2">&quot;None&quot;</span><span class="p">,</span>
+    <span class="nt">&quot;result&quot;</span><span class="p">:</span> <span class="s2">&quot;None&quot;</span><span class="p">,</span>
+    <span class="nt">&quot;script_name&quot;</span><span class="p">:</span> <span class="s2">&quot;summary&quot;</span><span class="p">,</span>
+    <span class="nt">&quot;started&quot;</span><span class="p">:</span> <span class="s2">&quot;None&quot;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>The API will most likely return another ID. Then, you’ll have to replace the
+ID used in these examples with your ID.</p>
+<p>2. Before we can start the job, we have to specify the DataFile to use. This
+could have been done in the first step as well. To update a job, we can use
+the <code class="docutils literal notranslate"><span class="pre">POST</span></code> endpoint, sending the new data.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>curl -XPOST /job/5b9011469eb82b0d84ca212f -d <span class="s1">&#39;{&quot;datafile&quot;: &quot;timeseries.csv&quot;}&#39;</span>
+</pre></div>
+</div>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="nt">&quot;created&quot;</span><span class="p">:</span> <span class="s2">&quot;2018-09-05 17:24:22.607000&quot;</span><span class="p">,</span>
+    <span class="nt">&quot;started&quot;</span><span class="p">:</span> <span class="s2">&quot;None&quot;</span><span class="p">,</span>
+    <span class="nt">&quot;finished&quot;</span><span class="p">:</span> <span class="s2">&quot;None&quot;</span><span class="p">,</span>
+    <span class="nt">&quot;result&quot;</span><span class="p">:</span> <span class="s2">&quot;None&quot;</span><span class="p">,</span>
+    <span class="nt">&quot;script_name&quot;</span><span class="p">:</span> <span class="s2">&quot;summary&quot;</span><span class="p">,</span>
+    <span class="nt">&quot;edited&quot;</span><span class="p">:</span> <span class="s2">&quot;2018-09-05 17:25:17.421061&quot;</span><span class="p">,</span>
+    <span class="nt">&quot;datafile&quot;</span><span class="p">:</span> <span class="s2">&quot;timeseries.csv&quot;</span><span class="p">,</span>
+    <span class="nt">&quot;_id&quot;</span><span class="p">:</span> <span class="s2">&quot;5b9011469eb82b0d84ca212f&quot;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<ol class="arabic simple" start="3">
+<li>Start the Job.</li>
+</ol>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>curl -XGET /job/5b9011469eb82b0d84ca212f/run
+</pre></div>
+</div>
+<p>which yields:</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="nt">&quot;_id&quot;</span><span class="p">:</span> <span class="s2">&quot;5b9011469eb82b0d84ca212f&quot;</span><span class="p">,</span>
+    <span class="nt">&quot;created&quot;</span><span class="p">:</span> <span class="s2">&quot;2018-09-05 17:24:22.607000&quot;</span><span class="p">,</span>
+    <span class="nt">&quot;data&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="nt">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;timeseries.csv&quot;</span><span class="p">,</span>
+        <span class="nt">&quot;path&quot;</span><span class="p">:</span> <span class="s2">&quot;/home/mirko/Dropbox/python/REST-nigma/rest_nigma/data/timeseries.csv&quot;</span><span class="p">,</span>
+        <span class="nt">&quot;size&quot;</span><span class="p">:</span> <span class="s2">&quot;566 KB&quot;</span><span class="p">,</span>
+        <span class="nt">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;datafile&quot;</span>
+    <span class="p">},</span>
+    <span class="nt">&quot;datafile&quot;</span><span class="p">:</span> <span class="s2">&quot;timeseries.csv&quot;</span><span class="p">,</span>
+    <span class="nt">&quot;edited&quot;</span><span class="p">:</span> <span class="s2">&quot;2018-09-05 17:25:58.674266&quot;</span><span class="p">,</span>
+    <span class="nt">&quot;finished&quot;</span><span class="p">:</span> <span class="s2">&quot;None&quot;</span><span class="p">,</span>
+    <span class="nt">&quot;result&quot;</span><span class="p">:</span> <span class="s2">&quot;None&quot;</span><span class="p">,</span>
+    <span class="nt">&quot;script&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="nt">&quot;args&quot;</span><span class="p">:</span> <span class="s2">&quot;[]&quot;</span><span class="p">,</span>
+        <span class="nt">&quot;kwargs&quot;</span><span class="p">:</span> <span class="p">{},</span>
+        <span class="nt">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;summary&quot;</span>
+    <span class="p">},</span>
+    <span class="nt">&quot;script_name&quot;</span><span class="p">:</span> <span class="s2">&quot;summary&quot;</span><span class="p">,</span>
+    <span class="nt">&quot;started&quot;</span><span class="p">:</span> <span class="s2">&quot;2018-09-05 17:25:58.673719&quot;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>As you can see, the Job did set the module, and process names and arguments.
+The <cite>started</cite> indicates, that the process is now started without error.
+However, the <cite>result</cite> and <cite>finished</cite> are still empty, because the Job status
+was returned directly after starting the job. If we need the status, we have
+to request to <code class="docutils literal notranslate"><span class="pre">GET</span></code> the Job instance again.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">It is absolutely possible that the result is already there, in the
+response of the start job request. The reason is, that the Job is started
+asynchronously and the Process fills in the finish time and the result.
+In case the Process finishes really quickly, it will have updated the
+Job object in the database, before the Job could infer and fill in all
+the information about the data file.</p>
+</div>
+<ol class="arabic simple" start="4">
+<li>Request the Job:</li>
+</ol>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>curl -XGET /job/5b9011469eb82b0d84ca212f
+</pre></div>
+</div>
+<p>output:</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="nt">&quot;created&quot;</span><span class="p">:</span> <span class="s2">&quot;2018-09-05 17:24:22.607000&quot;</span><span class="p">,</span>
+    <span class="nt">&quot;started&quot;</span><span class="p">:</span> <span class="s2">&quot;2018-09-05 17:25:58.673000&quot;</span><span class="p">,</span>
+    <span class="nt">&quot;finished&quot;</span><span class="p">:</span> <span class="s2">&quot;2018-09-05 17:25:59.756000&quot;</span><span class="p">,</span>
+    <span class="nt">&quot;result&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="nt">&quot;value&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="nt">&quot;count&quot;</span><span class="p">:</span> <span class="s2">&quot;12000.0&quot;</span><span class="p">,</span>
+            <span class="nt">&quot;mean&quot;</span><span class="p">:</span> <span class="s2">&quot;40.10492551050158&quot;</span><span class="p">,</span>
+            <span class="nt">&quot;std&quot;</span><span class="p">:</span> <span class="s2">&quot;12.660818317676181&quot;</span><span class="p">,</span>
+            <span class="nt">&quot;min&quot;</span><span class="p">:</span> <span class="s2">&quot;6.746015545337676&quot;</span><span class="p">,</span>
+            <span class="nt">&quot;25%&quot;</span><span class="p">:</span> <span class="s2">&quot;31.012809495045943&quot;</span><span class="p">,</span>
+            <span class="nt">&quot;50%&quot;</span><span class="p">:</span> <span class="s2">&quot;38.82110180726302&quot;</span><span class="p">,</span>
+            <span class="nt">&quot;75%&quot;</span><span class="p">:</span> <span class="s2">&quot;47.78757677274963&quot;</span><span class="p">,</span>
+            <span class="nt">&quot;max&quot;</span><span class="p">:</span> <span class="s2">&quot;104.02590583156969&quot;</span>
+        <span class="p">}</span>
+    <span class="p">},</span>
+    <span class="nt">&quot;script_name&quot;</span><span class="p">:</span> <span class="s2">&quot;summary&quot;</span><span class="p">,</span>
+    <span class="nt">&quot;datafile&quot;</span><span class="p">:</span> <span class="s2">&quot;timeseries.csv&quot;</span><span class="p">,</span>
+    <span class="nt">&quot;edited&quot;</span><span class="p">:</span> <span class="s2">&quot;2018-09-05 17:25:59.757000&quot;</span><span class="p">,</span>
+    <span class="nt">&quot;data&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="nt">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;datafile&quot;</span><span class="p">,</span>
+        <span class="nt">&quot;path&quot;</span><span class="p">:</span> <span class="s2">&quot;/home/mirko/Dropbox/python/REST-nigma/rest_nigma/data/timeseries.csv&quot;</span><span class="p">,</span>
+        <span class="nt">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;timeseries.csv&quot;</span><span class="p">,</span>
+        <span class="nt">&quot;size&quot;</span><span class="p">:</span> <span class="s2">&quot;566 KB&quot;</span>
+    <span class="p">},</span>
+    <span class="nt">&quot;script&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="nt">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;summary&quot;</span><span class="p">,</span>
+        <span class="nt">&quot;args&quot;</span><span class="p">:</span> <span class="s2">&quot;[]&quot;</span><span class="p">,</span>
+        <span class="nt">&quot;kwargs&quot;</span><span class="p">:</span> <span class="p">{}</span>
+    <span class="p">},</span>
+    <span class="nt">&quot;time_sec&quot;</span><span class="p">:</span> <span class="s2">&quot;1.083251&quot;</span><span class="p">,</span>
+    <span class="nt">&quot;_id&quot;</span><span class="p">:</span> <span class="s2">&quot;5b9011469eb82b0d84ca212f&quot;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>Now, there is the result. This dummy script, producing just a few statistical
+numbers on a timeseries created from a gamma distribution took over one
+second. The reason is a random time delay between 1 and 5 seconds.</p>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">jobserver</a></h1>
+
+
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=mmaelicke&repo=jobserver&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="workflow.html">Application workflow</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">User guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#using-a-restful-api">Using a RESTful API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#managing-datafiles">Managing DataFiles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#managing-jobs">Managing Jobs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#basic-example">Basic example</a></li>
+</ul>
+</li>
+</ul>
+
+
+<hr />
+<ul>
+    
+    <li class="toctree-l1"><a href="jobserver.pdf">Download PDF</a></li>
+    
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="workflow.html" title="previous chapter">Application workflow</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2018, Mirko Mälicke.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/usage.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
