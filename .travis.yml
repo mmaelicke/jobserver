@@ -27,7 +27,10 @@ script:
   - make html
 
   # build the pdf
-  - make latexpdf
+  - make latex
+  - cd build/latex
+  - make
+  - cd ../..
   - cp build/latex/jobserver.pdf build/html/jobserver.pdf
 
 deploy:
