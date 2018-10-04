@@ -21,7 +21,9 @@ install:
   # install latexmk
   - sudo apt-get install latexmk
   - sudo apt-get install xzdec
+  - cd docs
   - sudo tlmgr init-usertree
+  - cd ..
   - sudo tlmgr install cmap
   - sudo apt-get install texlive-fonts-recommended
 
