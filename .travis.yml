@@ -32,6 +32,7 @@ script:
   - pdflatex -interaction=nonstopmode -halt-on-error jobserver.tex
   - cd ../..
   - cp build/latex/jobserver.pdf build/html/jobserver.pdf
+  - cd ~
 
 deploy:
   provider: pages
@@ -40,4 +41,4 @@ deploy:
   keep_history: true
   on:
     branch: master
-  local_dir: build/html
+  local_dir: docs/build/html
