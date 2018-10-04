@@ -7,14 +7,40 @@ from bson.errors import InvalidId, InvalidDocument
 
 from jobserver.api import apiv1
 from jobserver.models.data_mongo import DataMongo
+from jobserver.auth.authorization import get_user_bound_filter
 
 
 class DataMongoApi(Resource):
     def get(self, data_id):
-        return {
-            'status': 505,
-            'message': NotImplemented
-        }, 505
+        """GET a Data Object
+
+        Returns a Data Object, which is any kind of JSON serializable object.
+        These objects might return big amounts of data in the response body
+        of this request.
+
+        Parameters
+        ----------
+        data_id : str
+            ObjectId of the requested data object.
+
+        Returns
+        -------
+        response : dict
+            JSON response to this GET data request
+
+        """
+        # get the filter
+        _filter = get_user_bound_filter(['admin'])
+
+        # get the data object
+        data = DataMongo.get(_id=data_id, filter=_filter)
+        if data is None:
+            return {
+                'status': 405,
+                'message': 'Data Object ID not found'
+            }, 405
+        else:
+            return data.to_dict(stringify=True), 200
 
     def post(self, data_id):
         """ Edit a Data Object
@@ -35,8 +61,11 @@ class DataMongoApi(Resource):
             JSON response to this POST edit request
 
         """
+        # get the filter
+        _filter = get_user_bound_filter(['admin'])
+
         # get the data object
-        data = DataMongo.get(_id=data_id)
+        data = DataMongo.get(_id=data_id, filter=_filter)
         if data is None:
             return {
                 'status': 405,
@@ -94,6 +123,10 @@ class DataMongoApi(Resource):
                 'message': 'No Data body passed.'
             }, 409
 
+        # get user info filter
+        _filter = get_user_bound_filter(['admin'])
+        data.update(_filter)
+
         # create the Data Object
         try:
             data = DataMongo(_id=data_id, **data)
@@ -132,8 +165,11 @@ class DataMongoApi(Resource):
             JSON response to this DELETE data request
 
         """
+        # get the filter
+        _filter = get_user_bound_filter(['admin'])
+
         # get the data object
-        data = DataMongo.get(_id=data_id)
+        data = DataMongo.get(_id=data_id, filter=_filter)
         if data is None:
             return {
                 'status': 405,

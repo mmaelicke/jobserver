@@ -32,6 +32,18 @@ def check_user_logged_in(user, password=None, check_activation=True):
     return user, 200
 
 
+def get_user_bound_filter(roles=[]):
+    # check if a user is logged in
+    if g.user is not None:
+        role = g.user.role
+        if role is None:
+            return {'user_id': str(g.user.id)}
+        elif role.lower() in roles or role.lower() == 'superuser':
+            return {}
+        return {'user_id': str(g.user.id)}
+    return {}
+
+
 def login_required(route):
     @wraps(route)
     def login_checker(*args, **kwargs):

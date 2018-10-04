@@ -18,11 +18,8 @@ install:
   # install requirements of docs
   - pip install -r requirements.rtd.txt
 
-  # install latexmk
-  - sudo apt-get install latexmk
-  - sudo apt-get install xzdec
-  - tlmgr install cmap
-  - sudo apt-get install texlive-fonts-recommended
+  # install texlive
+  - sudo apt-get install texlive-latex-extra texlive-latex-recommended texlive-fonts-recommended
 
 script:
   # build html docs
@@ -32,7 +29,7 @@ script:
   # build the pdf
   - make latex
   - cd build/latex
-  - make
+  - pdflatex -interaction=nonstopmode -halt-on-error jobserver.tex
   - cd ../..
   - cp build/latex/jobserver.pdf build/html/jobserver.pdf
 

@@ -7,18 +7,7 @@ from bson.errors import InvalidId
 
 from jobserver.models.job import Job
 from jobserver.api import api_v1_blueprint, apiv1
-
-
-def get_user_bound_filter(roles=[]):
-    # check if a user is logged in
-    if g.user is not None:
-        role = g.user.role
-        if role is None:
-            return {'user_id': str(g.user.id)}
-        elif role.lower() in roles or role.lower() == 'superuser':
-            return {}
-        return {'user_id': str(g.user.id)}
-    return {}
+from jobserver.auth.authorization import get_user_bound_filter
     
 
 class JobApi(Resource):
