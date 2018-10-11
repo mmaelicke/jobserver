@@ -190,4 +190,42 @@ class DataMongoApi(Resource):
             }, 500
 
 
+class DataMongosApi(Resource):
+    def get(self):
+        """GET all Data Objects
+
+        Returns a JSON response containing a list of all found Data Objects
+        the current user is allowed to see. The data itself will not be
+        returned as the Objects might be quite big.
+
+        Returns
+        -------
+        response : dict
+            JSON response to this DELETE data request
+
+        """
+        # get the filter
+        _filter = get_user_bound_filter(['admin'])
+
+        # set the fields to omit the data key
+        fields = dict(data=0)
+
+        # get the data
+        data = DataMongo.get_all(filter=_filter, fields=fields)
+
+        # return
+        return {
+            'status': 200,
+            'found': len(data),
+            'data': [d.to_dict(stringify=True) for d in data]
+        }, 200
+
+    def delete(self):
+        return {
+            'status': 505,
+            'message': 'not implemented'
+        }, 505
+
+
 apiv1.add_resource(DataMongoApi, '/data/<string:data_id>', endpoint='data')
+apiv1.add_resource(DataMongosApi, '/data', endpoint='datas')

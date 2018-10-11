@@ -6,7 +6,7 @@ from jobserver.auth.authorization import load_user_from_header_authorization
 api_v1_blueprint = Blueprint('apiv1', __name__)
 apiv1 = Api(api_v1_blueprint)
 
-from . import data_file, job, script
+from . import data_file, data_mongo, job, script
 
 
 @api_v1_blueprint.before_request
