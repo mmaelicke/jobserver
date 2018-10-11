@@ -94,7 +94,7 @@ class MongoModel(object):
             return True
 
     @classmethod
-    def get(cls, _id, filter={}):
+    def get(cls, _id, filter={}, fields=None):
         if cls.collection is None:
             raise ValueError('No collection set on child class')
 
@@ -107,19 +107,19 @@ class MongoModel(object):
         # update filter
         filter.update({'_id': _id})
 
-        res = cls.mongo.db[cls.collection].find_one(filter)
+        res = cls.mongo.db[cls.collection].find_one(filter, fields)
         if res is None:
             return None
 
         return cls(**res)
 
     @classmethod
-    def get_all(cls, filter={}):
+    def get_all(cls, filter={}, fields=None):
         if cls.collection is None:
             raise ValueError('No collection set on child class')
 
         # load all docs in this collection
-        all_docs = cls.mongo.db[cls.collection].find(filter)
+        all_docs = cls.mongo.db[cls.collection].find(filter, fields)
 
         return [cls(**doc) for doc in all_docs]
 
